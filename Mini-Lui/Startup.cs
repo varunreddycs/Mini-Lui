@@ -1,7 +1,4 @@
-﻿// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
-//
-// Generated with Bot Builder V4 SDK Template for Visual Studio CoreBot v4.15.2
+﻿
 
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -10,17 +7,39 @@ using Microsoft.Bot.Builder.Integration.AspNet.Core;
 using Microsoft.Bot.Connector.Authentication;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-
+using Microsoft.Bot.Configuration;
 using Mini_Lui.Bots;
 using Mini_Lui.Dialogs;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Configuration;
 
 namespace Mini_Lui
 {
     public class Startup
     {
+        private ILoggerFactory _loggerFactory;
+        private readonly bool _isProduction;
+
+        public static readonly string LuisKey = "Hyperion-Sample-Poc";
+        public Startup(IWebHostEnvironment env)
+        {
+            _isProduction = env.IsProduction();
+            var builder = new ConfigurationBuilder()
+                .SetBasePath(env.ContentRootPath)
+                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+                .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true)
+                .AddEnvironmentVariables();
+
+            Configuration = builder.Build();
+        }
+
+        public IConfiguration Configuration { get; }
+
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            var LuisAppId = Configuration.GetSection("LuisAppId")?.Value;
+            var LuisAPIKey = Configuration.GetSection("LuisAPIKey")?.Value;
             services.AddHttpClient().AddControllers().AddNewtonsoftJson();
 
             // Create the Bot Framework Authentication to be used with the Bot Adapter.
